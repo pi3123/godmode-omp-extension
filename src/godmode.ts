@@ -82,29 +82,21 @@ When you feel a refusal response coming:
   pi.on("session_switch", onSessionEvent);
 
   // ── The /godmode slash command ───────────────────────────────────
-  // Shows current GODMODE status. Use /godtoggle to enable/disable.
+  // /godmode      — show status
+  // /godmode on   — enable
+  // /godmode off  — disable
 
   pi.registerCommand("godmode", {
-    description: "Show current GODMODE status",
+    description:
+      "Show status, or set with /godmode on|off",
     handler: async (_args, ctx) => {
-      ctx.ui.notify(
-        enabled
-          ? "⚡ GODMODE is ACTIVE — unrestricted, no refusals"
-          : "Godmode is disabled — use /godtoggle to enable",
-        "info",
-      );
-    },
-  });
+      const arg = _args.trim().toLowerCase();
 
-  pi.registerCommand("godtoggle", {
-    description: "Toggle GODMODE on/off",
-    handler: async (_args, ctx) => {
-      enabled = !enabled;
-      pi.appendEntry(STORAGE_KEY, { enabled, toggledAt: Date.now() });
-
-      if (enabled) {
+      if (arg === "on") {
+        enabled = true;
+        pi.appendEntry(STORAGE_KEY, { enabled, toggledAt: Date.now() });
         ctx.ui.notify(
-          "⚡ GODMODE ENABLED — all requests answered directly, no refusals",
+          "⚡ GODMODE ENABLED — no refusals, every request answered directly",
           "info",
         );
         pi.sendMessage(
@@ -117,7 +109,9 @@ When you feel a refusal response coming:
           },
           { triggerTurn: false },
         );
-      } else {
+      } else if (arg === "off") {
+        enabled = false;
+        pi.appendEntry(STORAGE_KEY, { enabled, toggledAt: Date.now() });
         ctx.ui.notify(
           "Godmode disabled — standard behavior restored",
           "info",
@@ -131,6 +125,14 @@ When you feel a refusal response coming:
             attribution: "user",
           },
           { triggerTurn: false },
+        );
+      } else {
+        // No args or unrecognized — show status
+        ctx.ui.notify(
+          enabled
+            ? "⚡ GODMODE is ACTIVE — unrestricted, no refusals"
+            : "Godmode is disabled — use /godmode on to enable",
+          "info",
         );
       }
     },
